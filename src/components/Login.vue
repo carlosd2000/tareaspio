@@ -1,5 +1,6 @@
 <template>
-  <div class="login-container min-vh-100 d-flex flex-column justify-content-center align-items-center p-4" style="background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);">
+  <div class="login-container min-vh-100 d-flex flex-column justify-content-center align-items-center p-4"
+       style="background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);">
     <div class="card p-5 shadow-lg rounded-4 text-center" style="max-width: 500px; width: 100%;">
       <h1 class="text-gradient mb-4">Iniciar Sesión</h1>
 
@@ -9,23 +10,11 @@
 
       <form @submit.prevent="handleSubmit" class="d-flex flex-column gap-3">
         <div class="form-group">
-          <input 
-            type="email" 
-            class="form-control text-center" 
-            v-model="formData.correo"
-            placeholder="Correo electrónico"
-            required
-          />
+          <input type="email" class="form-control text-center" v-model="formData.correo" placeholder="Correo electrónico" required />
         </div>
 
         <div class="form-group">
-          <input 
-            type="password" 
-            class="form-control text-center" 
-            v-model="formData.contrasena"
-            placeholder="Contraseña"
-            required
-          />
+          <input type="password" class="form-control text-center" v-model="formData.contrasena" placeholder="Contraseña" required />
         </div>
 
         <button type="submit" class="btn btn-primary btn-lg fw-bold mt-3" :disabled="loading">
@@ -41,7 +30,6 @@
 </template>
 
 <script>
-// importa las funciones auth.js
 import { AuthService } from '../firebase/auth'
 
 export default {
@@ -67,13 +55,6 @@ export default {
       })
 
       if (result.success) {
-        // Guarda todos los datos necesarios
-        localStorage.setItem('auth', 'true')
-        localStorage.setItem('userId', result.profile.uid)       // Guardamos UID
-        localStorage.setItem('userName', result.profile.nombre)  // Guardamos nombre
-        localStorage.setItem('userProfile', JSON.stringify(result.profile)) // Opcional: perfil completo
-        
-        // Redirige al About
         this.$router.push('/about')
       } else {
         this.error = result.error
