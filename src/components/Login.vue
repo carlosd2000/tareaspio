@@ -68,7 +68,7 @@ export default {
 
       if (result.success) {
         localStorage.setItem('userProfile', JSON.stringify(result.profile))
-        this.$router.push('/game-room')
+        this.$router.push('/about')
       } else {
         this.error = result.error
       }

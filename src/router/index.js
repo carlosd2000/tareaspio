@@ -3,6 +3,7 @@ import Home from '../components/Home.vue'
 import Register from '../components/Register.vue'
 import Login from '../components/Login.vue'
 //import Tareas from '../components/Tareas.vue'
+import About from '../components/About.vue'
 
 
 const routes = [
@@ -20,7 +21,9 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: Login
-  }
+  },
+
+  { path: '/about', component: About },
 ]
 
 const router = createRouter({
