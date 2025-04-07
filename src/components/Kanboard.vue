@@ -3,6 +3,7 @@
     <h1 class="text-center text-gradient mb-4">Tablero de Tareas Kanban</h1>
 
     <div class="kanban-board d-flex justify-content-center gap-4 flex-wrap">
+      
       <!-- Pendiente -->
       <div class="kanban-column">
         <h3 class="column-title bg-warning text-dark p-2 rounded">Pendiente</h3>
@@ -87,6 +88,7 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import draggable from 'vuedraggable'
 import { useRouter } from 'vue-router'
 import { loadTasks, updateTask, deleteTask } from '../firebase/tareasService'
@@ -108,7 +110,10 @@ export default {
     const inProgressTasks = computed(() => tasks.value.filter(task => task.status === 'En Progreso'))
     const doneTasks = computed(() => tasks.value.filter(task => task.status === 'Completada' || task.status === 'Finalizado'))
 
-    const isOwner = (task) => task.userId === currentUserId.value
+    const isOwner = (task) => {
+      if (!currentUserId.value) return false
+      return task.userId === currentUserId.value
+    }
 
     const priorityColor = (priority) => {
       if (priority === 'Alta') return 'text-danger'
@@ -160,51 +165,50 @@ export default {
     }
 
     const handleEditTask = async (task) => {
-  if (!isOwner(task)) {
-    return Swal.fire('Acceso Denegado', 'No puedes editar esta tarea.', 'warning')
-  }
-  
-  const { value: formValues } = await Swal.fire({
-    title: 'Editar Tarea',
-    html: `
-      <input id="swal-title" class="swal2-input" placeholder="Título" value="${task.title}">
-      <textarea id="swal-description" class="swal2-textarea" placeholder="Descripción">${task.description}</textarea>
-      <input id="swal-dueDate" class="swal2-input" type="date" value="${task.dueDate.split('T')[0]}">
-      <select id="swal-priority" class="swal2-select">
-        <option value="Alta" ${task.priority === 'Alta' ? 'selected' : ''}>Alta</option>
-        <option value="Media" ${task.priority === 'Media' ? 'selected' : ''}>Media</option>
-        <option value="Baja" ${task.priority === 'Baja' ? 'selected' : ''}>Baja</option>
-      </select>
-    `,
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonText: 'Actualizar',
-    preConfirm: () => {
-      const title = document.getElementById('swal-title').value
-      const description = document.getElementById('swal-description').value
-      const dueDate = document.getElementById('swal-dueDate').value
-      const priority = document.getElementById('swal-priority').value
-
-      if (!title || !description || !dueDate || !priority) {
-        Swal.showValidationMessage('Completa todos los campos')
-        return
+      if (!isOwner(task)) {
+        return Swal.fire('Acceso Denegado', 'No puedes editar esta tarea.', 'warning')
       }
+      
+      const { value: formValues } = await Swal.fire({
+        title: 'Editar Tarea',
+        html: `
+          <input id="swal-title" class="swal2-input" placeholder="Título" value="${task.title}">
+          <textarea id="swal-description" class="swal2-textarea" placeholder="Descripción">${task.description}</textarea>
+          <input id="swal-dueDate" class="swal2-input" type="date" value="${task.dueDate.split('T')[0]}">
+          <select id="swal-priority" class="swal2-select">
+            <option value="Alta" ${task.priority === 'Alta' ? 'selected' : ''}>Alta</option>
+            <option value="Media" ${task.priority === 'Media' ? 'selected' : ''}>Media</option>
+            <option value="Baja" ${task.priority === 'Baja' ? 'selected' : ''}>Baja</option>
+          </select>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Actualizar',
+        preConfirm: () => {
+          const title = document.getElementById('swal-title').value
+          const description = document.getElementById('swal-description').value
+          const dueDate = document.getElementById('swal-dueDate').value
+          const priority = document.getElementById('swal-priority').value
 
-      return { title, description, dueDate, priority }
+          if (!title || !description || !dueDate || !priority) {
+            Swal.showValidationMessage('Completa todos los campos')
+            return
+          }
+
+          return { title, description, dueDate, priority }
+        }
+      })
+
+      if (formValues) {
+        await updateTask(task.id, {
+          title: formValues.title,
+          description: formValues.description,
+          dueDate: new Date(formValues.dueDate).toISOString(),
+          priority: formValues.priority
+        })
+        fetchTasks()
+      }
     }
-  })
-
-  if (formValues) {
-    await updateTask(task.id, {
-      title: formValues.title,
-      description: formValues.description,
-      dueDate: new Date(formValues.dueDate).toISOString(),
-      priority: formValues.priority
-    })
-    fetchTasks()
-  }
-}
-
 
     const handleDeleteTask = async (task) => {
       if (!isOwner(task)) {
@@ -227,13 +231,15 @@ export default {
     }
 
     onMounted(() => {
-      const auth = localStorage.getItem('auth')
-      if (auth === 'true') {
-        currentUserId.value = localStorage.getItem('userId')
-        fetchTasks()
-      } else {
-        router.push('/login')
-      }
+      const auth = getAuth()
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          currentUserId.value = user.uid
+          await fetchTasks()
+        } else {
+          router.push('/login')
+        }
+      })
     })
 
     return {
