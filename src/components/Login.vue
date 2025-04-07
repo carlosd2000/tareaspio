@@ -67,7 +67,13 @@ export default {
       })
 
       if (result.success) {
-        localStorage.setItem('userProfile', JSON.stringify(result.profile))
+        // Guarda todos los datos necesarios
+        localStorage.setItem('auth', 'true')
+        localStorage.setItem('userId', result.profile.uid)       // Guardamos UID
+        localStorage.setItem('userName', result.profile.nombre)  // Guardamos nombre
+        localStorage.setItem('userProfile', JSON.stringify(result.profile)) // Opcional: perfil completo
+        
+        // Redirige al About
         this.$router.push('/about')
       } else {
         this.error = result.error
