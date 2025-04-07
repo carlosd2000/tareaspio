@@ -2,9 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../components/Home.vue'
 import Register from '../components/Register.vue'
 import Login from '../components/Login.vue'
-//import Tareas from '../components/Tareas.vue'
 import About from '../components/About.vue'
-
+import Kanboard from '../components/Kanboard.vue'  // 👈 IMPORTAMOS el Kanboard
 
 const routes = [
   {
@@ -22,8 +21,16 @@ const routes = [
     name: 'Login',
     component: Login
   },
-
-  { path: '/about', component: About },
+  {
+    path: '/about',
+    name: 'About',
+    component: About
+  },
+  {
+    path: '/kanboard',   // 👈 NUEVA RUTA para Kanban
+    name: 'Kanboard',
+    component: Kanboard
+  }
 ]
 
 const router = createRouter({
@@ -31,4 +38,4 @@ const router = createRouter({
   routes
 })
 
-export default router 
+export default router
